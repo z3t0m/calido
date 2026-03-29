@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1a1a18">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Calido">
+<link rel="manifest" href="manifest.json">
+<title>Calido — Calisthénie</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --bg2: #f5f5f4; --bg3: #eeece9;
+    --text: #1a1a18; --text2: #6b6b67; --text3: #9c9c97;
+    --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.22);
+    --info-bg: #e6f1fb; --info-text: #185fa5; --info-border: rgba(24,95,165,0.3);
+    --success-bg: #eaf3de; --success-text: #3b6d11; --success-border: rgba(59,109,17,0.3);
+    --warn-bg: #faeeda; --warn-text: #854f0b; --warn-border: rgba(133,79,11,0.3);
+    --danger-bg: #fcebeb; --danger-text: #a32d2d; --danger-border: rgba(163,45,45,0.3);
+    --radius: 8px; --radius-lg: 12px;
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1e1e1c; --bg2: #2a2a28; --bg3: #333330;
+      --text: #f0ede8; --text2: #a8a8a3; --text3: #6b6b67;
+      --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.2);
+      --info-bg: #0c2d4a; --info-text: #85b7eb; --info-border: rgba(133,183,235,0.3);
+      --success-bg: #173404; --success-text: #c0dd97; --success-border: rgba(192,221,151,0.3);
+      --warn-bg: #412402; --warn-text: #fac775; --warn-border: rgba(250,199,117,0.3);
+      --danger-bg: #501313; --danger-text: #f09595; --danger-border: rgba(240,149,149,0.3);
+    }
+  }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg3); color: var(--text);
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
+  }
+  .app { max-width: 480px; margin: 0 auto; padding: 1rem 1rem 5rem; }
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; padding-top: 0.5rem; }
+  /* Bottom nav bar */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--bg); border-top: 0.5px solid var(--border);
+    display: flex; padding-bottom: var(--safe-bottom);
+    z-index: 100;
+  }
+  .bottom-nav button {
+    flex: 1; padding: 12px 4px 10px; border: none; background: none;
+    font-size: 10px; color: var(--text3); cursor: pointer; font-family: inherit;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    transition: color 0.15s;
+  }
+  .bottom-nav button.active { color: var(--text); }
+  .bottom-nav button svg { width: 22px; height: 22px; }
+  .view { display: none; }
+  .view.active { display: block; }
+  .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 12px; }
+  .metric-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 1rem; }
+  .metric { background: var(--bg2); border-radius: var(--radius); padding: 12px; text-align: center; }
+  .metric-val { font-size: 22px; font-weight: 500; }
+  .metric-label { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .badge { display: inline-block; font-size: 11px; padding: 3px 8px; border-radius: var(--radius); font-weight: 500; }
+  .badge-info { background: var(--info-bg); color: var(--info-text); }
+  .badge-success { background: var(--success-bg); color: var(--success-text); }
+  .badge-warn { background: var(--warn-bg); color: var(--warn-text); }
+  .badge-danger { background: var(--danger-bg); color: var(--danger-text); }
+  .section-title { font-size: 12px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .exercise-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+  .exercise-row:last-child { border-bottom: none; }
+  .ex-name { font-size: 14px; font-weight: 500; }
+  .ex-target { font-size: 12px; color: var(--text2); margin-top: 1px; }
+  input[type="number"], input[type="text"], select {
+    padding: 7px 10px; border: 0.5px solid var(--border2); border-radius: var(--radius);
+    background: var(--bg2); color: var(--text); font-size: 14px; font-family: inherit;
+    outline: none; transition: border-color 0.15s; -webkit-appearance: none;
+  }
+  input[type="number"]:focus, input[type="text"]:focus, select:focus { border-color: var(--info-text); }
+  input[type="number"] { width: 62px; text-align: center; }
+  input[type="text"], select { width: 100%; }
+  .btn-primary { width: 100%; padding: 13px; background: var(--text); color: var(--bg); border: none; border-radius: var(--radius); font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 1rem; font-family: inherit; transition: opacity 0.15s; -webkit-tap-highlight-color: transparent; }
+  .btn-primary:active { opacity: 0.7; }
+  .reminder-box { border-radius: var(--radius-lg); padding: 12px 1rem; margin-bottom: 12px; border: 0.5px solid var(--border); }
+  .prog-bar-wrap { background: var(--bg2); border-radius: 999px; height: 6px; margin: 4px 0 2px; overflow: hidden; }
+  .prog-bar { height: 6px; border-radius: 999px; transition: width 0.4s ease; }
+  .history-row { padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+  .history-row:last-child { border-bottom: none; }
+  .tour-label { font-size: 12px; font-weight: 500; color: var(--text2); margin: 8px 0 6px; }
+  .empty-state { text-align: center; padding: 2.5rem 1rem; color: var(--text3); font-size: 14px; }
+  .type-btn { padding: 6px 10px; font-size: 11px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: none; cursor: pointer; font-family: inherit; color: var(--text2); -webkit-tap-highlight-color: transparent; }
+  .type-btn.sel-technique { background: var(--info-bg); color: var(--info-text); border-color: var(--info-border); font-weight: 500; }
+  .type-btn.sel-hiit { background: var(--danger-bg); color: var(--danger-text); border-color: var(--danger-border); font-weight: 500; }
+  .type-btn.sel-both { background: var(--danger-bg); color: var(--danger-text); border-color: var(--danger-border); font-weight: 500; }
+  .info-box { background: var(--info-bg); border: 0.5px solid var(--info-border); border-radius: var(--radius-lg); padding: 12px 1rem; margin-bottom: 12px; font-size: 12px; color: var(--info-text); }
+  .hiit-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 0.5px solid var(--border); }
+  .hiit-row:last-child { border-bottom: none; }
+  .day-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+  .day-row:last-child { border-bottom: none; }
+  .unit-label { font-size: 11px; color: var(--text2); }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div>
+      <h1 style="font-size:18px; font-weight:500;">Calido</h1>
+      <p style="font-size:12px; color:var(--text2);">Phase 1 · Technique + HIIT</p>
+    </div>
+    <span class="badge badge-info" id="today-label"></span>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="view-dashboard" class="view active">
+    <div id="reminder-container"></div>
+    <div class="metric-grid">
+      <div class="metric"><div class="metric-val" id="streak-val">0</div><div class="metric-label">Streak (j)</div></div>
+      <div class="metric"><div class="metric-val" id="total-sessions">0</div><div class="metric-label">Séances</div></div>
+      <div class="metric"><div class="metric-val" id="week-sessions">0</div><div class="metric-label">Cette sem.</div></div>
+    </div>
+    <div class="card">
+      <div class="section-title">Prochaine séance</div>
+      <p id="next-session-text" style="font-size:14px; font-weight:500; margin-bottom:3px;"></p>
+      <p id="next-session-type" style="font-size:12px; color:var(--text2); margin-bottom:12px;"></p>
+      <button class="btn-primary" onclick="showView('logger', 1)">Logger une séance →</button>
+    </div>
+    <div class="card">
+      <div class="section-title">Progression vers Phase 2</div>
+      <div class="info-box">Critère : atteindre les objectifs <strong>au Tour 1, à frais</strong>.</div>
+      <div id="phase2-progress"></div>
+    </div>
+    <div class="card">
+      <div class="section-title">Dernières séances</div>
+      <div id="recent-history"></div>
+    </div>
+  </div>
+
+  <!-- LOGGER -->
+  <div id="view-logger" class="view">
+    <div class="card" style="margin-bottom:8px;">
+      <div class="section-title" style="margin-bottom:8px;">Type de séance</div>
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        <button class="type-btn sel-technique" id="log-type-btn-technique" onclick="setLogType('technique')">Travail technique</button>
+        <button class="type-btn" id="log-type-btn-hiit" onclick="setLogType('hiit')">HIIT</button>
+        <button class="type-btn" id="log-type-btn-both" onclick="setLogType('both')">Technique + HIIT</button>
+      </div>
+    </div>
+    <div id="technique-section"></div>
+    <div id="hiit-section" style="display:none;"></div>
+    <div class="card" style="margin-top:8px;">
+      <div class="section-title" style="margin-bottom:8px;">Ressenti</div>
+      <select id="feeling-select" style="margin-bottom:10px;">
+        <option value="facile">Facile</option>
+        <option value="bon" selected>Bon entraînement</option>
+        <option value="dur">Dur</option>
+        <option value="epuise">Épuisé</option>
+      </select>
+      <input type="text" id="notes-input" placeholder="Notes (optionnel)...">
+      <button class="btn-primary" onclick="saveSession()">Enregistrer la séance</button>
+    </div>
+  </div>
+
+  <!-- PROGRESSION -->
+  <div id="view-progression" class="view">
+    <div class="info-box">Scores = meilleur Tour 1 · c'est ce qui compte pour la Phase 2</div>
+    <div class="card">
+      <div class="section-title" style="margin-bottom:12px;">Technique — meilleur Tour 1</div>
+      <div id="best-scores"></div>
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-bottom:4px;">Historique complet</div>
+      <div id="full-history"></div>
+    </div>
+  </div>
+
+  <!-- PROGRAMME -->
+  <div id="view-programme" class="view">
+    <div class="card">
+      <div class="section-title" style="margin-bottom:4px;">Planning hebdomadaire</div>
+      <p style="font-size:12px; color:var(--text2); margin-bottom:12px;">Définis le type pour chaque jour</p>
+      <div id="day-schedule"></div>
+      <button class="btn-primary" onclick="saveProgram()">Enregistrer</button>
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-bottom:8px;">Circuit technique — 6 exercices × 4 tours</div>
+      <p style="font-size:11px; color:var(--text2); margin-bottom:10px;">Pause exos : 45-60s · Pause tours : 2 min</p>
+      <div class="exercise-row"><div><div class="ex-name">Tractions</div><div class="ex-target">obj. Phase 2 : 10</div></div></div>
+      <div class="exercise-row"><div><div class="ex-name">Pompes</div><div class="ex-target">obj. Phase 2 : 20</div></div></div>
+      <div class="exercise-row"><div><div class="ex-name">Pistol squats</div><div class="ex-target">obj. Phase 2 : 10</div></div></div>
+      <div class="exercise-row"><div><div class="ex-name">Gainage</div><div class="ex-target">obj. Phase 2 : 60s</div></div></div>
+      <div class="exercise-row"><div><div class="ex-name">Dips</div><div class="ex-target">obj. Phase 2 : 12</div></div></div>
+      <div class="exercise-row"><div><div class="ex-name">L-sit</div><div class="ex-target">obj. Phase 2 : 10s</div></div></div>
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-bottom:8px;">Circuit HIIT — 7 exercices × 4 tours</div>
+      <p style="font-size:11px; color:var(--text2); margin-bottom:10px;">Pause exos : 15-20s · Pause tours : 1 min</p>
+      <div class="exercise-row"><div><div class="ex-name">Burpee</div><div class="ex-target">10 reps</div></div></div>
+      <div class="exercise-row"><div><div class="ex-name">Bateau</div><div class="ex-target">30 sec</div></div></div>
+      <div class="exercise-row"><div><div class="ex-name">Jumping Jack</div><div class="ex-target">rythme soutenu</div></div></div>
+      <div class="exercise-row"><div><div class="ex-name">Twist russe</div><div class="ex-target">20 reps</div></div></div>
+      <div class="exercise-row"><div><div class="ex-name">Gainage côté</div><div class="ex-target">30s / côté</div></div></div>
+      <div class="exercise-row"><div><div class="ex-name">Mountain Climber</div><div class="ex-target">50 reps</div></div></div>
+      <div class="exercise-row"><div><div class="ex-name">Sit up en chaise</div><div class="ex-target">15 reps</div></div></div>
+    </div>
+    <div class="card" style="border-color:var(--danger-border);">
+      <div class="section-title" style="margin-bottom:8px;">Données</div>
+      <button onclick="exportData()" style="width:100%;padding:10px;background:none;border:0.5px solid var(--border2);border-radius:var(--radius);font-size:13px;cursor:pointer;font-family:inherit;color:var(--text);margin-bottom:8px;">Exporter (JSON)</button>
+      <button onclick="confirmReset()" style="width:100%;padding:10px;background:none;border:0.5px solid var(--danger-border);border-radius:var(--radius);font-size:13px;cursor:pointer;font-family:inherit;color:var(--danger-text);">Réinitialiser les données</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom navigation -->
+<nav class="bottom-nav">
+  <button id="nav-dashboard" class="active" onclick="showView('dashboard', 0)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    Dashboard
+  </button>
+  <button id="nav-logger" onclick="showView('logger', 1)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="12" x2="15" y2="15"/></svg>
+    Logger
+  </button>
+  <button id="nav-progression" onclick="showView('progression', 2)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Progression
+  </button>
+  <button id="nav-programme" onclick="showView('programme', 3)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+    Programme
+  </button>
+</nav>
+
+<script>
+const TECH_EXERCISES = [
+  { id: 'tractions', name: 'Tractions', unit: 'reps', target: 10 },
+  { id: 'pompes', name: 'Pompes', unit: 'reps', target: 20 },
+  { id: 'pistol', name: 'Pistol squats', unit: 'reps', target: 10 },
+  { id: 'gainage', name: 'Gainage', unit: 'sec', target: 60 },
+  { id: 'dips', name: 'Dips', unit: 'reps', target: 12 },
+  { id: 'lsit', name: 'L-sit', unit: 'sec', target: 10 }
+];
+const HIIT_EXERCISES = [
+  { id: 'burpee', name: 'Burpee', cible: '10 reps', unit: 'reps', hasInput: true },
+  { id: 'bateau', name: 'Bateau', cible: '30 sec', unit: 'sec', hasInput: true },
+  { id: 'jumping', name: 'Jumping Jack', cible: 'rythme soutenu', unit: '', hasInput: false },
+  { id: 'twist', name: 'Twist russe', cible: '20 reps', unit: 'reps', hasInput: true },
+  { id: 'gainage_cote', name: 'Gainage côté', cible: '30s/côté', unit: 'sec', hasInput: true },
+  { id: 'mountain', name: 'Mountain Climber', cible: '50 reps', unit: 'reps', hasInput: true },
+  { id: 'situp', name: 'Sit up en chaise', cible: '15 reps', unit: 'reps', hasInput: true }
+];
+const DAYS_SHORT = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+const DAYS_FULL = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+const TYPE_LABELS = { repos: 'Repos', technique: 'Technique', hiit: 'HIIT', both: 'Technique + HIIT' };
+const TYPE_BADGE = { repos: 'badge-warn', technique: 'badge-info', hiit: 'badge-danger', both: 'badge-danger' };
+const SHORT_LABELS = { repos: 'Repos', technique: 'Tech', hiit: 'HIIT', both: 'T+H' };
+const NAV_IDS = ['dashboard','logger','progression','programme'];
+
+const DEFAULT_STATE = {
+  sessions: [],
+  schedule: { 0:'technique',1:'repos',2:'both',3:'repos',4:'technique',5:'repos',6:'repos' }
+};
+let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+let logType = 'technique';
+
+function loadState() {
+  try { const s = localStorage.getItem('calido-state'); if (s) state = JSON.parse(s); } catch(e) {}
+  render();
+}
+function saveState() {
+  try { localStorage.setItem('calido-state', JSON.stringify(state)); } catch(e) {}
+}
+
+function showView(name, idx) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  render();
+}
+
+function getTodayIdx() { return (new Date().getDay() + 6) % 7; }
+function getTodayStr() { return new Date().toISOString().split('T')[0]; }
+function getTodayType() { return state.schedule[getTodayIdx()] || 'repos'; }
+function didTrainToday() { return state.sessions.some(s => s.date === getTodayStr()); }
+
+function getStreak() {
+  if (!state.sessions.length) return 0;
+  const dates = [...new Set(state.sessions.map(s => s.date))].sort().reverse();
+  let streak = 0; let d = new Date(); d.setHours(0,0,0,0);
+  for (let i = 0; i < 90; i++) {
+    const ds = d.toISOString().split('T')[0];
+    if (dates.includes(ds)) { streak++; d.setDate(d.getDate()-1); }
+    else if (i === 0) d.setDate(d.getDate()-1);
+    else break;
+  }
+  return streak;
+}
+
+function getWeekSessions() {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const monday = new Date(now); monday.setDate(now.getDate() - getTodayIdx());
+  return state.sessions.filter(s => new Date(s.date) >= monday).length;
+}
+
+function getBestTour1() {
+  const bests = {};
+  TECH_EXERCISES.forEach(e => bests[e.id] = 0);
+  state.sessions.forEach(s => {
+    if (s.tours && s.tours[0]) {
+      TECH_EXERCISES.forEach(e => {
+        const v = parseInt(s.tours[0][e.id]) || 0;
+        if (v > bests[e.id]) bests[e.id] = v;
+      });
+    }
+  });
+  return bests;
+}
+
+function phase2Ready(bests) { return TECH_EXERCISES.every(e => (bests[e.id]||0) >= e.target); }
+
+function setLogType(type) {
+  logType = type;
+  ['technique','hiit','both'].forEach(t => {
+    const btn = document.getElementById('log-type-btn-'+t);
+    if (btn) btn.className = 'type-btn' + (type===t?' sel-'+t:'');
+  });
+  const ts = document.getElementById('technique-section');
+  const hs = document.getElementById('hiit-section');
+  if (ts) ts.style.display = (type==='technique'||type==='both') ? 'block' : 'none';
+  if (hs) hs.style.display = (type==='hiit'||type==='both') ? 'block' : 'none';
+}
+
+function renderDashboard() {
+  const todayIdx = getTodayIdx();
+  const todayType = getTodayType();
+  document.getElementById('today-label').textContent = DAYS_FULL[todayIdx];
+  document.getElementById('streak-val').textContent = getStreak();
+  document.getElementById('total-sessions').textContent = state.sessions.length;
+  document.getElementById('week-sessions').textContent = getWeekSessions();
+
+  const rem = document.getElementById('reminder-container');
+  if (todayType === 'repos') {
+    rem.innerHTML = `<div class="reminder-box" style="background:var(--bg2);"><p style="font-size:13px;color:var(--text2);">Jour de repos — récupération</p></div>`;
+  } else if (!didTrainToday()) {
+    rem.innerHTML = `<div class="reminder-box" style="background:var(--warn-bg);border-color:var(--warn-border);"><p style="font-size:13px;font-weight:500;color:var(--warn-text);">Séance prévue : ${TYPE_LABELS[todayType]}</p><p style="font-size:12px;color:var(--warn-text);opacity:0.85;margin-top:2px;">Pas encore enregistrée aujourd'hui</p></div>`;
+  } else {
+    rem.innerHTML = `<div class="reminder-box" style="background:var(--success-bg);border-color:var(--success-border);"><p style="font-size:13px;font-weight:500;color:var(--success-text);">Séance du jour enregistrée !</p></div>`;
+  }
+
+  const nextTraining = (() => {
+    for (let i = 1; i <= 7; i++) {
+      const idx = (todayIdx+i)%7; const t = state.schedule[idx];
+      if (t && t!=='repos') return { days:i, idx, type:t };
+    }
+    return null;
+  })();
+  if (todayType!=='repos' && !didTrainToday()) {
+    document.getElementById('next-session-text').textContent = "Aujourd'hui";
+    document.getElementById('next-session-type').textContent = TYPE_LABELS[todayType];
+  } else if (nextTraining) {
+    document.getElementById('next-session-text').textContent = `${DAYS_FULL[nextTraining.idx]} · dans ${nextTraining.days} j`;
+    document.getElementById('next-session-type').textContent = TYPE_LABELS[nextTraining.type];
+  } else {
+    document.getElementById('next-session-text').textContent = 'Configure ton programme';
+    document.getElementById('next-session-type').textContent = '';
+  }
+
+  const bests = getBestTour1();
+  document.getElementById('phase2-progress').innerHTML =
+    TECH_EXERCISES.map(e => {
+      const v = bests[e.id]; const pct = Math.min(100,Math.round(v/e.target*100)); const done = v>=e.target;
+      return `<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px;"><span>${e.name}</span><span style="color:${done?'var(--success-text)':'var(--text2)'};">${v}/${e.target}${e.unit==='sec'?'s':''} ${done?'✓':''}</span></div><div class="prog-bar-wrap"><div class="prog-bar" style="width:${pct}%;background:${done?'var(--success-text)':'var(--text)'};"></div></div></div>`;
+    }).join('') + (phase2Ready(bests) ? `<div style="margin-top:12px;padding:10px;background:var(--success-bg);border-radius:var(--radius);text-align:center;font-size:13px;font-weight:500;color:var(--success-text);">Tu es prêt pour la Phase 2 !</div>` : '');
+
+  const recent = [...state.sessions].reverse().slice(0,4);
+  document.getElementById('recent-history').innerHTML = !recent.length
+    ? '<div class="empty-state">Aucune séance enregistrée</div>'
+    : recent.map(s => {
+        const t1 = s.tours&&s.tours[0];
+        const summary = t1 ? TECH_EXERCISES.map(e=>`${e.name.substring(0,3)}: ${t1[e.id]||'-'}`).join(' · ') : (s.type==='hiit'?'HIIT':'—');
+        return `<div class="history-row"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;"><span style="font-weight:500;">${s.date}</span><span class="badge ${TYPE_BADGE[s.type]||'badge-info'}">${TYPE_LABELS[s.type]||s.type}</span></div><div style="font-size:11px;color:var(--text2);">${summary}</div></div>`;
+      }).join('');
+}
+
+function renderLogger() {
+  const ts = document.getElementById('technique-section');
+  let techHtml = '';
+  for (let t=1; t<=4; t++) {
+    techHtml += `<div class="card"><div class="tour-label">Tour ${t}${t===1?' <span style="color:var(--info-text);font-weight:400;">— scores clés Phase 2</span>':''}</div>`;
+    TECH_EXERCISES.forEach(e => {
+      techHtml += `<div class="exercise-row"><div><div class="ex-name">${e.name}</div><div class="ex-target">obj: ${e.target}${e.unit==='sec'?'s':''}</div></div><div style="display:flex;align-items:center;gap:6px;"><input type="number" min="0" id="t${t}-${e.id}" placeholder="0"><span class="unit-label">${e.unit}</span></div></div>`;
+    });
+    techHtml += '</div>';
+  }
+  ts.innerHTML = techHtml;
+
+  const hs = document.getElementById('hiit-section');
+  let hiitHtml = '';
+  for (let t=1; t<=4; t++) {
+    hiitHtml += `<div class="card" style="border-left:2px solid var(--danger-border);"><div class="tour-label" style="color:var(--danger-text);">HIIT — Tour ${t}</div><p style="font-size:11px;color:var(--text2);margin-bottom:10px;">Pause 15-20s · Pause tours 1 min</p>`;
+    HIIT_EXERCISES.forEach(e => {
+      hiitHtml += e.hasInput
+        ? `<div class="hiit-row"><div><div class="ex-name">${e.name}</div><div class="ex-target">${e.cible}</div></div><div style="display:flex;align-items:center;gap:6px;"><input type="number" min="0" id="h${t}-${e.id}" placeholder="0"><span class="unit-label">${e.unit}</span></div></div>`
+        : `<div class="hiit-row"><div><div class="ex-name">${e.name}</div><div class="ex-target">${e.cible}</div></div><span class="badge badge-danger" style="font-size:10px;">✓</span></div>`;
+    });
+    hiitHtml += '</div>';
+  }
+  hs.innerHTML = hiitHtml;
+  setLogType(logType);
+}
+
+function renderProgression() {
+  const bests = getBestTour1();
+  document.getElementById('best-scores').innerHTML = !state.sessions.length
+    ? '<div class="empty-state">Aucune donnée encore</div>'
+    : TECH_EXERCISES.map(e => {
+        const v=bests[e.id]; const pct=Math.min(100,Math.round(v/e.target*100)); const done=v>=e.target;
+        return `<div class="exercise-row"><div><div class="ex-name">${e.name}</div><div class="ex-target">${v}${e.unit==='sec'?'s':''} / obj ${e.target}${e.unit==='sec'?'s':''}</div></div><span class="badge ${done?'badge-success':'badge-info'}">${pct}%</span></div>`;
+      }).join('');
+
+  document.getElementById('full-history').innerHTML = !state.sessions.length
+    ? '<div class="empty-state">Aucune séance</div>'
+    : [...state.sessions].reverse().map(s => {
+        const tours=(s.tours||[]).map((t,i)=>`<div style="font-size:11px;color:var(--text2);padding:1px 0;">T${i+1}: ${TECH_EXERCISES.map(e=>`${e.name.substring(0,3)}: ${t[e.id]||'-'}`).join(' · ')}</div>`).join('');
+        const hiitTours=(s.hiit||[]).map((h,i)=>`<div style="font-size:11px;color:var(--danger-text);padding:1px 0;">HIIT T${i+1}: ${HIIT_EXERCISES.filter(e=>e.hasInput).map(e=>`${e.name.substring(0,3)}: ${h[e.id]||'-'}`).join(' · ')}</div>`).join('');
+        return `<div style="padding:10px 0;border-bottom:0.5px solid var(--border);"><div style="display:flex;justify-content:space-between;font-size:13px;font-weight:500;margin-bottom:4px;"><span>${s.date}</span><span class="badge ${TYPE_BADGE[s.type]||'badge-info'}">${TYPE_LABELS[s.type]||''}</span></div>${tours}${hiitTours}${s.notes?`<div style="font-size:11px;color:var(--text2);font-style:italic;margin-top:3px;">${s.notes}</div>`:''}</div>`;
+      }).join('');
+}
+
+function renderProgramme() {
+  const types = ['repos','technique','hiit','both'];
+  document.getElementById('day-schedule').innerHTML = DAYS_SHORT.map((d,i) => {
+    const cur = state.schedule[i]||'repos';
+    const btns = types.map(t=>`<button class="type-btn ${cur===t?'sel-'+t:''}" onclick="setDayType(${i},'${t}')" style="font-size:10px;padding:4px 8px;">${SHORT_LABELS[t]}</button>`).join('');
+    return `<div class="day-row"><span style="font-size:13px;font-weight:500;min-width:36px;">${d}</span><div style="display:flex;gap:4px;">${btns}</div></div>`;
+  }).join('');
+}
+
+function setDayType(idx, type) { state.schedule[idx]=type; renderProgramme(); }
+
+function saveProgram() {
+  saveState();
+  const btn=event.target; btn.textContent='Enregistré !';
+  setTimeout(()=>btn.textContent='Enregistrer',1500);
+}
+
+function saveSession() {
+  const tours=[];
+  if (logType==='technique'||logType==='both') {
+    for (let t=1;t<=4;t++) {
+      const tour={};
+      TECH_EXERCISES.forEach(e=>{tour[e.id]=document.getElementById(`t${t}-${e.id}`)?.value||'0';});
+      tours.push(tour);
+    }
+  }
+  const hiit=[];
+  if (logType==='hiit'||logType==='both') {
+    for (let t=1;t<=4;t++) {
+      const h={};
+      HIIT_EXERCISES.filter(e=>e.hasInput).forEach(e=>{h[e.id]=document.getElementById(`h${t}-${e.id}`)?.value||'0';});
+      hiit.push(h);
+    }
+  }
+  state.sessions.push({
+    date:getTodayStr(), type:logType,
+    feeling:document.getElementById('feeling-select').value,
+    notes:document.getElementById('notes-input').value,
+    tours, hiit
+  });
+  saveState();
+  showView('dashboard',0);
+}
+
+function exportData() {
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`calido-backup-${getTodayStr()}.json`; a.click();
+}
+
+function confirmReset() {
+  if (confirm('Supprimer toutes les données ? Action irréversible.')) {
+    state=JSON.parse(JSON.stringify(DEFAULT_STATE)); saveState();
+    showView('dashboard',0);
+  }
+}
+
+function render() {
+  const id=document.querySelector('.view.active')?.id;
+  if (id==='view-dashboard') renderDashboard();
+  else if (id==='view-logger') renderLogger();
+  else if (id==='view-progression') renderProgression();
+  else if (id==='view-programme') renderProgramme();
+}
+
+// Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+loadState();
+</script>
+</body>
+</html>

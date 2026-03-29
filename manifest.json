@@ -1,0 +1,24 @@
+{
+  "name": "Calido — Calisthénie Phase 1",
+  "short_name": "Calido",
+  "description": "Tracker d'entraînement calisthénie Phase 1",
+  "start_url": "/calido/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a1a18",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
